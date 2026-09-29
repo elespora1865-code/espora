@@ -1,0 +1,928 @@
+/* ==========================================================================
+   EL ESPORA - PERIÓDICO HISTÓRICO DE LA PATAGONIA ARGENTINA
+   Sistema de Diseño: Edición Editorial Cálida & Imprenta Clásica
+   ========================================================================== */
+
+:root {
+  /* PALETA PAPEL PRENSA TRADICIONAL & TINTA FRESCA */
+  --bg-main: #f5f2eb;
+  /* Tono papel de diario cálido */
+  --bg-surface: #fbf9f5;
+  /* Superficie de lectura suave */
+  --bg-card: #ffffff;
+  /* Tarjetas limpias */
+  --bg-card-hover: #ffffff;
+  --bg-newspaper-overlay: rgba(251, 249, 245, 0.95);
+
+  /* Textos tono tinta tipográfica */
+  --text-bone: #1a1a1a;
+  /* Tinta negra profunda */
+  --text-parchment: #2d2d2d;
+  --text-muted: #5e5e5e;
+  --text-dim: #7d7d7d;
+
+  --navy-deep: #072647;
+  --navy-accent: #1e3a8a;
+  --navy-badge: #0d1b2a;
+  --navy-border: #cbd5e1;
+
+  --gold-accent: #1e3a8a;
+  /* Bronce/Dorado editorial */
+  --gold-dim: #1e3a8a;
+
+  --border-fine: 1px solid rgba(0, 0, 0, 0.08);
+  --border-medium: 1px solid rgba(0, 0, 0, 0.15);
+  --border-double: double 3px rgba(0, 0, 0, 0.2);
+  --border-navy: 1px solid rgba(30, 58, 138, 0.2);
+
+  --shadow-editorial: 0 12px 32px rgba(0, 0, 0, 0.04);
+  --shadow-card: 0 4px 16px rgba(0, 0, 0, 0.05);
+  --shadow-glow: 0 6px 20px rgba(163, 115, 54, 0.12);
+
+  --font-masthead: 'Cinzel', 'Playfair Display', Georgia, serif;
+  --font-headline: 'Playfair Display', 'Newsreader', Georgia, serif;
+  --font-body: 'Newsreader', 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --transition-smooth: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* TEMA OSCURO (MODO LECTURA NOCTURNA) */
+body.theme-dark {
+  --bg-main: #0f131a;
+  --bg-surface: #151a24;
+  --bg-card: #1c2230;
+  --bg-card-hover: #22293a;
+  --bg-newspaper-overlay: rgba(15, 19, 26, 0.95);
+
+  --text-bone: #f4efeb;
+  --text-parchment: #e6ded5;
+  --text-muted: #9fa8b8;
+  --text-dim: #64748b;
+
+  --gold-accent: #c5a880;
+  --gold-dim: #8c7352;
+  --border-fine: 1px solid rgba(244, 239, 235, 0.1);
+  --border-double: double 3px rgba(244, 239, 235, 0.18);
+}
+
+/* Reset y base */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+body {
+  background-color: var(--bg-main);
+  color: var(--text-bone);
+  font-family: var(--font-body);
+  line-height: 1.65;
+  background-attachment: fixed;
+  overflow-x: hidden;
+  transition: background-color 0.4s ease, color 0.4s ease;
+}
+
+/* ==========================================================================
+   TIPOGRAFÍA Y ELEMENTOS EDITORIALES
+   ========================================================================== */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-headline);
+  font-weight: 700;
+  color: var(--text-bone);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+p {
+  color: var(--text-parchment);
+  font-size: 1.05rem;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: var(--transition-smooth);
+}
+
+/* Capitular de Periódico Antiguo (Drop Cap) */
+.drop-cap::first-letter {
+  float: left;
+  font-family: var(--font-masthead);
+  font-size: 3.8rem;
+  line-height: 0.82;
+  padding-top: 4px;
+  padding-right: 12px;
+  padding-bottom: 2px;
+  color: var(--gold-accent);
+  font-weight: 800;
+}
+
+/* Filetes decorativos de imprenta */
+.rule-double {
+  border: none;
+  border-top: var(--border-double);
+  margin: 1.5rem 0;
+}
+
+.rule-single {
+  border: none;
+  border-top: var(--border-fine);
+  margin: 1rem 0;
+}
+
+.ornament {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  color: var(--gold-accent);
+  font-size: 0.85rem;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  margin: 1rem 0;
+}
+
+.ornament::before,
+.ornament::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(163, 115, 54, 0.4));
+}
+
+.ornament::after {
+  background: linear-gradient(90deg, rgba(163, 115, 54, 0.4), transparent);
+}
+
+/* ==========================================================================
+   LAYOUT Y CONTENEDOR PRINCIPAL
+   ========================================================================== */
+
+.page-wrapper {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  position: relative;
+}
+
+.editorial-frame {
+  border: none;
+  padding: 0 2rem;
+  position: relative;
+  background: var(--bg-surface);
+  box-shadow: var(--shadow-editorial);
+  margin-top: 1.5rem;
+  margin-bottom: 3rem;
+  border-radius: var(--radius-md);
+}
+
+/* ==========================================================================
+   1. BARRA SUPERIOR DE IMPRENTA
+   ========================================================================== */
+
+.utility-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.8rem 0;
+  border-bottom: var(--border-fine);
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.utility-left,
+.utility-center,
+.utility-right {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.edition-badge {
+  background: var(--navy-deep);
+  color: #ffffff;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.control-btn {
+  background: transparent;
+  border: var(--border-fine);
+  color: var(--text-bone);
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  transition: var(--transition-smooth);
+}
+
+.control-btn:hover {
+  background: var(--navy-accent);
+  border-color: var(--navy-accent);
+  color: #ffffff;
+}
+
+/* ==========================================================================
+   2. GRAN CABECERA EDITORIAL (MASTHEAD)
+   ========================================================================== */
+
+.masthead {
+  padding: 2.5rem 0 1rem;
+  text-align: center;
+  position: relative;
+}
+
+/* Caja contenedora limpia (sin bordes rígidos ni sombras oscuras) */
+.masthead-plate {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+.masthead-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3rem;
+  margin: 0.5rem 0;
+  padding: 0;
+  height: 220px;
+  flex-wrap: wrap;
+  position: relative;
+  overflow: visible;
+}
+
+/* Logo con escalado y comportamiento original */
+.masthead-logo-img {
+  width: auto;
+  height: auto;
+  max-width: 95%;
+  max-height: 210px;
+  border-radius: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  object-fit: contain;
+  padding: 0;
+  mix-blend-mode: multiply;
+  margin: 0 auto;
+  display: block;
+  transform: scale(2.8);
+  /* <--- CAMBIA ESTE NÚMERO PARA AGRANDAR O ACHICAR (ej: 2.5, 3.0, 3.2) */
+  transform-origin: center center;
+  filter: contrast(115%);
+  transition: transform 0.4s ease;
+}
+
+.masthead-logo-img:hover {
+  transform: scale(2.9) translateY(-1px);
+}
+
+.footer-logo-img {
+  width: 44px;
+  height: 52px;
+  mix-blend-mode: multiply;
+}
+
+.masthead-top-sub {
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: var(--text-muted);
+  font-weight: 700;
+  margin-bottom: 0.6rem;
+}
+
+/* ==========================================================================
+   3. NAVEGACIÓN Y SECCIONES
+   ========================================================================== */
+
+.nav-bar {
+  border-top: var(--border-fine);
+  border-bottom: var(--border-fine);
+  padding: 0.75rem 0;
+  position: sticky;
+  top: 0;
+  background: var(--bg-newspaper-overlay);
+  backdrop-filter: blur(10px);
+  z-index: 90;
+  margin: 1rem 0 2rem;
+}
+
+.nav-menu {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  list-style: none;
+  gap: 2.5rem;
+  flex-wrap: wrap;
+}
+
+.nav-link {
+  font-family: var(--font-sans);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-bone);
+  padding: 0.2rem 0;
+  position: relative;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--gold-accent);
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover::after,
+.nav-link.active::after {
+  width: 100%;
+}
+
+.nav-link:hover {
+  color: var(--gold-accent);
+}
+
+/* ==========================================================================
+   4. PORTADA PRINCIPAL (FRONT PAGE GRID)
+   ========================================================================== */
+
+.frontpage-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 2.5rem;
+  margin-bottom: 3rem;
+  align-items: start;
+}
+
+.lead-story {
+  display: flex;
+  flex-direction: column;
+}
+
+.lead-category-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: var(--gold-accent);
+  margin-bottom: 0.6rem;
+}
+
+.lead-headline {
+  font-size: clamp(2.1rem, 3.5vw, 3.1rem);
+  font-weight: 800;
+  line-height: 1.12;
+  margin-bottom: 0.85rem;
+  transition: color 0.2s ease;
+}
+
+.lead-headline:hover {
+  color: var(--gold-accent);
+}
+
+.lead-subhead {
+  font-family: var(--font-body);
+  font-style: italic;
+  font-size: 1.2rem;
+  color: var(--text-parchment);
+  line-height: 1.45;
+  margin-bottom: 1.25rem;
+}
+
+.lead-meta {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  border-top: var(--border-fine);
+  border-bottom: var(--border-fine);
+  padding: 0.6rem 0;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.author-info {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text-bone);
+  font-weight: 600;
+}
+
+.lead-media-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  margin-bottom: 1.25rem;
+  box-shadow: var(--shadow-card);
+  background: var(--bg-card);
+}
+
+.lead-img {
+  width: 100%;
+  height: 420px;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.5s ease;
+}
+
+.lead-media-container:hover .lead-img {
+  transform: scale(1.015);
+}
+
+.image-caption {
+  padding: 0.6rem 0.85rem;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  background: var(--bg-card);
+  border-top: var(--border-fine);
+}
+
+/* Sidebar Limpio y Elegante (Elevación suave en vez de bordes feos) */
+.world-news-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.sidebar-ad-box {
+  background: #eee8dc;
+  /* Tono papel contrastado muy sutil */
+  border: none !important;
+  border-radius: var(--radius-md);
+  padding: 1.5rem;
+  text-align: center;
+  box-shadow: var(--shadow-card);
+}
+
+.sidebar-ad-title {
+  font-family: var(--font-masthead);
+  font-size: 0.95rem;
+  color: var(--gold-accent);
+  margin-bottom: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ==========================================================================
+   5. REPRODUCTOR DE PODCAST / AUDIO AUSTRAL
+   ========================================================================== */
+
+.audio-dispatch-bar {
+  background: var(--bg-card);
+  border: var(--border-fine);
+  border-radius: var(--radius-md);
+  padding: 1.25rem 1.75rem;
+  margin: 2.5rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  box-shadow: var(--shadow-card);
+  flex-wrap: wrap;
+}
+
+.audio-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.audio-play-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--gold-accent);
+  color: #ffffff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1.1rem;
+  transition: var(--transition-smooth);
+}
+
+.audio-play-btn:hover {
+  transform: scale(1.08);
+  box-shadow: var(--shadow-glow);
+}
+
+.audio-title {
+  font-family: var(--font-headline);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-bone);
+}
+
+.audio-sub {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.audio-waveform {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 24px;
+}
+
+.wave-bar {
+  width: 3px;
+  background: var(--gold-accent);
+  border-radius: 2px;
+  animation: sound-wave 1.2s ease-in-out infinite alternate;
+}
+
+.wave-bar:nth-child(2) {
+  animation-delay: 0.2s;
+  height: 16px;
+}
+
+.wave-bar:nth-child(3) {
+  animation-delay: 0.4s;
+  height: 22px;
+}
+
+.wave-bar:nth-child(4) {
+  animation-delay: 0.1s;
+  height: 12px;
+}
+
+.wave-bar:nth-child(5) {
+  animation-delay: 0.5s;
+  height: 18px;
+}
+
+.wave-bar:nth-child(6) {
+  animation-delay: 0.3s;
+  height: 10px;
+}
+
+.wave-bar:nth-child(7) {
+  animation-delay: 0.6s;
+  height: 24px;
+}
+
+@keyframes sound-wave {
+  0% {
+    transform: scaleY(0.3);
+    opacity: 0.5;
+  }
+
+  100% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
+/* ==========================================================================
+   6. AGREGADOR RSS EN TIEMPO REAL & GRILLA DE NOTICIAS
+   ========================================================================== */
+
+.section-header-block {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 2.5rem 0 1.5rem;
+  border-top: var(--border-double);
+  border-bottom: var(--border-fine);
+  padding: 0.85rem 0;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.section-main-title {
+  font-family: var(--font-headline);
+  font-size: 1.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.feed-status-bar {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.feed-live-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: #16a34a;
+  font-weight: 700;
+  text-transform: uppercase;
+  background: rgba(34, 197, 94, 0.08);
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-sm);
+}
+
+.refresh-cables-btn {
+  background: var(--navy-deep);
+  border: none;
+  color: #ffffff;
+  padding: 0.4rem 0.9rem;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: var(--transition-smooth);
+}
+
+.refresh-cables-btn:hover {
+  background: var(--navy-accent);
+}
+
+.filter-pills {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+.filter-pill {
+  background: var(--bg-card);
+  border: var(--border-fine);
+  color: var(--text-muted);
+  padding: 0.45rem 1rem;
+  border-radius: 50px;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+}
+
+.filter-pill:hover,
+.filter-pill.active {
+  background: var(--navy-badge);
+  border-color: var(--navy-badge);
+  color: #ffffff;
+}
+
+/* Grilla de Artículos */
+.articles-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.75rem;
+  margin-bottom: 3rem;
+}
+
+.article-card {
+  background: var(--bg-card);
+  border: var(--border-fine);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: var(--transition-smooth);
+  box-shadow: var(--shadow-card);
+}
+
+.article-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+}
+
+.article-img-wrap {
+  position: relative;
+  height: 190px;
+  overflow: hidden;
+  background: #e2e2e2;
+}
+
+.article-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.5s ease;
+}
+
+.article-card:hover .article-img {
+  transform: scale(1.04);
+}
+
+.article-content {
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.article-card-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  line-height: 1.28;
+  margin-bottom: 0.6rem;
+  color: var(--text-bone);
+  transition: color 0.2s ease;
+}
+
+.article-card-title:hover {
+  color: var(--gold-accent);
+}
+
+.article-card-excerpt {
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin-bottom: 1.25rem;
+  flex: 1;
+}
+
+.article-card-footer {
+  border-top: var(--border-fine);
+  padding-top: 0.85rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  color: var(--text-dim);
+}
+
+/* ==========================================================================
+   7. MODAL Y FOOTER
+   ========================================================================== */
+
+.editorial-footer {
+  border-top: var(--border-double);
+  padding: 3rem 0 2rem;
+  margin-top: 4rem;
+  background: var(--bg-surface);
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1.5fr;
+  gap: 2.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.footer-col-title {
+  font-family: var(--font-headline);
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--gold-accent);
+  margin-bottom: 1rem;
+}
+
+.footer-links {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  font-family: var(--font-sans);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.footer-links a:hover {
+  color: var(--gold-accent);
+}
+
+.footer-bottom-bar {
+  border-top: var(--border-fine);
+  padding-top: 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  color: var(--text-dim);
+}
+
+/* Modales */
+.reader-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(10, 15, 25, 0.75);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+}
+
+.reader-modal.active {
+  display: flex;
+}
+
+.reader-box {
+  background: var(--bg-surface);
+  width: 100%;
+  max-width: 820px;
+  max-height: 90vh;
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.reader-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: var(--border-fine);
+  background: var(--bg-card);
+}
+
+.reader-content-scroll {
+  padding: 2.5rem;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* RESPONSIVE */
+@media (max-width: 1024px) {
+  .frontpage-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .editorial-frame {
+    padding: 0 1rem;
+  }
+
+  .nav-menu {
+    gap: 1rem;
+  }
+
+  .footer-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .articles-grid {
+    grid-template-columns: 1fr;
+  }
+}

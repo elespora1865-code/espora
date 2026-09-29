@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Internacional — El Espora</title>
+
+    <!-- Tipografías Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Cinzel:wght@500;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Great+Vibes&family=Inter:wght@300;400;500;600;700;800&family=Italianno&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,600&family=Pinyon+Script&family=Playfair+Display:ital,wght@0,500;0,700;0,900;1,400;1,700&display=swap"
+        rel="stylesheet">
+
+    <!-- Estilos -->
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/png" href="assets/logo.png">
+</head>
+
+<body>
+    <div class="page-wrapper">
+        <div class="editorial-frame">
+
+            <header class="utility-bar">
+                <div class="utility-left">
+                    <span id="live-date">Cargando fecha austral...</span>
+                </div>
+                <div class="utility-right">
+                    <button id="theme-toggle-btn" class="control-btn" title="Cambiar modo de lectura">
+                        📜 Modo Papel Prensa
+                    </button>
+                </div>
+            </header>
+
+            <section class="masthead">
+                <div class="masthead-plate">
+                    <div class="masthead-top-sub">
+                        Diario Independiente de Información General • Fundado en el Territorio Austral
+                    </div>
+                    <div class="masthead-center" style="justify-content: center; padding: 1.5rem 0;">
+                        <img src="assets/logo.png" alt="El Espora" class="masthead-logo-img"
+                            style="max-height: 280px; width: 100%; object-fit: contain; mix-blend-mode: multiply; filter: contrast(110%);">
+                    </div>
+                    <div class="masthead-motto-bar">
+                        <span style="color: var(--navy-badge); font-weight: 800;">SECCIÓN EXCLUSIVA •
+                            INTERNACIONALES</span>
+                    </div>
+                </div>
+            </section>
+
+            <nav class="nav-bar">
+                <ul class="nav-menu">
+                    <li><a href="index.html" class="nav-link">Todas</a></li>
+                    <li><a href="patagonia.html" class="nav-link">Patagonia</a></li>
+                    <li><a href="argentina.html" class="nav-link">Argentina</a></li>
+                    <li><a href="internacional.html" class="nav-link active">Internacional</a></li>
+                </ul>
+            </nav>
+
+            <main style="padding: 2rem 0;">
+                <div class="section-header-block">
+                    <h3 class="section-main-title">
+                        <span>🌐</span> Panorama Geopolítico Global
+                    </h3>
+                </div>
+
+                <div id="articles-grid" class="articles-grid">
+                    <!-- JS inyectará las noticias Internacionales aquí -->
+                </div>
+            </main>
+
+            <footer class="editorial-footer">
+                <div class="footer-bottom-bar">
+                    <div>
+                        © 1891 - 2026 <strong>El Espora</strong>. Todos los derechos reservados.
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

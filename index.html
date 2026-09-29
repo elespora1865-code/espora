@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>El Espora — Periódico Histórico & Agregador Austral en Tiempo Real</title>
+  <meta name="description"
+    content="El Espora: Medio de comunicación independiente de la Patagonia argentina que condensa las noticias más importantes del mundo con rigor, prioridad y mirada local en tiempo real.">
+
+  <!-- Tipografías Google Fonts para Estética Editorial Clásica y de Lujo -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Cinzel:wght@500;700;900&family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=Great+Vibes&family=Inter:wght@300;400;500;600;700;800&family=Italianno&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;0,6..72,700;1,6..72,400;1,6..72,600&family=Pinyon+Script&family=Playfair+Display:ital,wght@0,500;0,700;0,900;1,400;1,700&display=swap"
+    rel="stylesheet">
+
+  <!-- Estilos del Periódico -->
+  <link rel="stylesheet" href="styles.css">
+  <link rel="icon" type="image/png" href="assets/logo.png">
+</head>
+
+<body>
+
+  <!-- CONTENEDOR PRINCIPAL DEL PERIÓDICO -->
+  <div class="page-wrapper">
+    <div class="editorial-frame">
+
+      <!-- 1. BARRA SUPERIOR DE IMPRENTA -->
+      <header class="utility-bar">
+        <div class="utility-left">
+          <span id="live-date">Cargando fecha austral...</span>
+        </div>
+
+        <div class="utility-right">
+          <button type="button" id="theme-toggle-btn" class="control-btn" title="Cambiar modo de lectura">
+            📜 Modo Papel Prensa
+          </button>
+        </div>
+      </header>
+
+      <!-- 2. GRAN CABECERA EDITORIAL (MASTHEAD) -->
+      <section class="masthead">
+        <div class="masthead-plate" style="display: flex; flex-direction: column; align-items: center;">
+          <!-- EL LOGO -->
+          <div class="masthead-center" style="padding: 2rem 0 1rem 0;">
+            <img src="assets/logo.png" alt="Logotipo Oficial El Espora" class="masthead-logo-img"
+              style="max-height: 275px; width: auto; object-fit: contain; mix-blend-mode: multiply; filter: contrast(110%);">
+          </div>
+          <!-- LA BAJADA -->
+          <div class="masthead-top-sub"
+            style="padding-bottom: 2rem; margin-top: 2rem; font-size: 0.8rem; letter-spacing: 3px; color: #4a4a4a; text-transform: uppercase;">
+            Diario Independiente de Información General • Fundado en Territorio Patagónico
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. NAVEGACIÓN Y SECCIONES -->
+      <nav class="nav-bar" aria-label="Navegación principal">
+        <ul class="nav-menu">
+          <li><a href="index.html" class="nav-link active" aria-current="page">Todas</a></li>
+          <li><a href="patagonia.html" class="nav-link">Patagonia</a></li>
+          <li><a href="argentina.html" class="nav-link">Argentina</a></li>
+          <li><a href="internacional.html" class="nav-link">Internacional</a></li>
+        </ul>
+      </nav>
+
+      <!-- 4. PORTADA PRINCIPAL (FRONT PAGE GRID) -->
+      <main id="portada" class="frontpage-grid">
+
+        <!-- Columna Izquierda: Gran Crónica de Portada -->
+        <!-- Mejora: Envolvemos todo el bloque en el ID main-lead-link para que toda el área sea clicable -->
+        <a href="#" id="main-lead-link" style="text-decoration: none; color: inherit; display: block;">
+          <article class="lead-story" style="transition: opacity 0.3s; cursor: pointer;">
+            <span class="lead-category-tag" id="main-lead-category">
+              <span>🔄</span> Sincronizando con agencia...
+            </span>
+
+            <!-- Corrección: El ID debe ser main-lead-title -->
+            <h2 class="lead-headline" id="main-lead-title">
+              Sincronizando con la portada principal...
+            </h2>
+
+            <p class="lead-subhead" id="main-lead-excerpt">
+              Aguarde un momento mientras conectamos con los servidores para traer la noticia principal del día.
+            </p>
+
+            <!-- Corrección: Eliminado 'display: none' -->
+            <div class="lead-meta" id="main-lead-meta">
+              <div class="author-info" id="main-lead-author">
+                <span>✍️ Obteniendo autor...</span>
+              </div>
+              <span id="main-lead-date">📅 ...</span>
+              <span style="color: var(--gold-accent);">★ Crónica Principal</span>
+            </div>
+
+            <!-- Corrección: Eliminado 'display: none' -->
+            <div class="lead-media-container" id="main-lead-media-container">
+              <img src="assets/hero-patagonia.jpg" alt="Imagen de portada" class="lead-img" id="main-lead-img"
+                loading="lazy">
+              <div class="image-caption">
+                <span>Cobertura principal del día en tiempo real.</span>
+              </div>
+            </div>
+          </article>
+        </a>
+
+        <!-- Columna Derecha: Sidebar Limpio -->
+        <div class="world-news-list">
+          <div class="sidebar-ad-box" style="margin-top: 0;">
+            <h5 class="sidebar-ad-title">📜 DECLARACIÓN DE PRINCIPIOS</h5>
+            <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.45;">
+              "Informar con la sobriedad del viento, el rigor de la historia y el compromiso inquebrantable con la
+              soberanía austral."
+            </p>
+            <div class="ornament" style="margin: 0.75rem 0 0.25rem;">♦ ♦ ♦</div>
+          </div>
+        </div>
+      </main>
+
+      <!-- 5. BARRA DE REPRODUCTOR DE AUDIO AUSTRAL (PODCAST DEL VIENTO) -->
+      <section id="audio-section" class="audio-dispatch-bar">
+        <div class="audio-info">
+          <button type="button" id="audio-play-btn" class="audio-play-btn" title="Escuchar despacho en audio">▶</button>
+          <div>
+            <div class="audio-title">🎙️ El Despacho del Viento (Edición Sonora Diaria)</div>
+            <div class="audio-sub">Resumen de noticias internacionales y panorama austral en 5 minutos • Voz del Archivo
+            </div>
+          </div>
+        </div>
+        <div class="audio-waveform">
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+          <div class="wave-bar"></div>
+        </div>
+      </section>
+
+      <!-- 6. AGREGADOR RSS EN TIEMPO REAL: DESPACHOS & CABLES -->
+      <section id="patagonia">
+        <div class="section-header-block">
+          <div>
+            <h3 class="section-main-title">
+              <span>📰</span> Despachos en Tiempo Real
+            </h3>
+            <div
+              style="font-family: var(--font-sans); font-size: 0.78rem; color: var(--text-muted); margin-top: 0.25rem;">
+              Cables sincronizados vía RSS desde agencias y medios regionales y globales
+            </div>
+          </div>
+
+          <div class="feed-status-bar">
+            <span class="feed-live-indicator">
+              <span class="ticker-pulse" style="width: 6px; height: 6px;"></span>
+              <span id="feed-status-text">Sintonizando cables...</span>
+            </span>
+            <button type="button" id="refresh-cables-btn" class="refresh-cables-btn"
+              title="Forzar sincronización de cables">
+              <span>🔄</span> Actualizar Cables
+            </button>
+          </div>
+        </div>
+
+        <div class="filter-pills">
+          <button type="button" class="filter-pill filter-btn active" data-category="all">Todos los Despachos</button>
+          <button type="button" class="filter-pill filter-btn" data-category="patagonia">🏔️ Patagonia & Región</button>
+          <button type="button" class="filter-pill filter-btn" data-category="argentina">🗞️ Nacional</button>
+          <button type="button" class="filter-pill filter-btn" data-category="geopolitica">🌐 Geopolítica
+            Global</button>
+        </div>
+
+        <!-- BARRA DE BÚSQUEDA -->
+        <div class="search-container" style="margin: 1.5rem 0; text-align: center; grid-column: 1 / -1;">
+          <input type="text" id="article-search" placeholder="🔍 Buscar palabras clave, lugares o agencias..."
+            autocomplete="off"
+            style="width: 100%; max-width: 500px; padding: 0.75rem 1.5rem; border-radius: 50px; border: 1px solid var(--border-fine); background: var(--bg-card); color: var(--text-main); font-family: var(--font-sans); font-size: 1rem; outline: none; transition: box-shadow 0.2s;">
+        </div>
+
+        <!-- CONTENEDOR PRINCIPAL DE NOTICIAS -->
+        <div class="articles-grid news-grid" id="articles-grid">
+          <!-- Inyectado dinámicamente desde app.js -->
+        </div>
+      </section>
+
+      <!-- 7. PIE DE IMPRENTA (EDITORIAL FOOTER) -->
+      <footer class="editorial-footer">
+        <div class="footer-grid">
+          <div>
+            <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+              <img src="assets/logo.png" alt="Logo El Espora" class="footer-logo-img" loading="lazy"
+                style="max-height: 55px; width: auto; mix-blend-mode: multiply;">
+            </div>
+            <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 1rem;">
+              Periódico independiente fundado para llevar la verdad desde el confín austral al mundo y traer las grandes
+              noticias globales a la mesa de los lectores.
+            </p>
+          </div>
+
+          <div>
+            <h4 class="footer-col-title">Secciones</h4>
+            <ul class="footer-links">
+              <li><a href="#patagonia">Patagonia</a></li>
+              <li><a href="#argentina">Argentina</a></li>
+              <li><a href="#internacional">Internacional</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 class="footer-col-title">Agencias Conectadas</h4>
+            <ul class="footer-links">
+              <li><a href="https://www.rionegro.com.ar" target="_blank" rel="noopener">Diario Río Negro</a></li>
+              <li><a href="https://www.bbc.com/mundo" target="_blank" rel="noopener">BBC Mundo</a></li>
+              <li><a href="https://www.infobae.com" target="_blank" rel="noopener">Infobae</a></li>
+              <li><a href="https://www.clarin.com" target="_blank" rel="noopener">Clarín</a></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 class="footer-col-title">Compromiso Ético</h4>
+            <p style="font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 1rem;">
+              Registrado en el Registro Nacional de la Propiedad Intelectual. Agregación de noticias vía sindicación RSS
+              abierta respetando autoría original.
+            </p>
+            <div style="display: flex; gap: 0.75rem;">
+              <span class="edition-badge" style="cursor: pointer;">📡 Red Satelital</span>
+              <span class="edition-badge" style="cursor: pointer;">🗞️ Feeds RSS</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer-bottom-bar">
+          <div>
+            © 1891 - 2026 <strong>El Espora</strong>. Todos los derechos reservados. Impreso en el viento austral.
+          </div>
+          <div style="display: flex; gap: 1.5rem;">
+            <a href="#portada" style="color: var(--gold-accent);">Volver arriba ↑</a>
+          </div>
+        </div>
+      </footer>
+
+    </div>
+  </div>
+
+  <!-- 8. MODAL DE LECTURA PROFUNDA (ARTICLE READER MODAL) -->
+  <div id="reader-modal" class="reader-modal">
+    <div class="reader-box">
+      <div class="reader-header">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <span class="edition-badge">LECTOR INMERSIVO</span>
+          <span style="font-family: var(--font-sans); font-size: 0.75rem; color: var(--text-muted);">El Espora
+            Digital</span>
+        </div>
+
+        <div class="reader-header-actions">
+          <button type="button" id="btn-font-decrease" class="control-btn" title="Reducir tamaño de letra">A -</button>
+          <button type="button" id="btn-font-increase" class="control-btn" title="Aumentar tamaño de letra">A +</button>
+          <button type="button" id="modal-bookmark-btn" class="control-btn" data-saved="false">🔖 Guardar</button>
+          <button type="button" id="modal-close-btn" class="control-btn"
+            style="background: rgba(239, 68, 68, 0.2); border-color: rgba(239, 68, 68, 0.4); color: #fca5a5;"
+            title="Cerrar (Esc)">
+            ✕ Cerrar
+          </button>
+        </div>
+      </div>
+
+      <div class="reader-content-scroll" id="reader-modal-body">
+        <!-- Inyectado dinámicamente con JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="app.js"></script>
+</body>
+
+</html>
