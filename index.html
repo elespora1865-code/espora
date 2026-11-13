@@ -18,6 +18,9 @@
   <!-- Estilos del Periódico -->
   <link rel="stylesheet" href="styles.css">
   <link rel="icon" type="image/png" href="assets/logo.png">
+
+  <!-- marked.js: conversor Markdown → HTML para los artículos del bot -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
 </head>
 
 <body>
@@ -136,6 +139,17 @@
           <div class="wave-bar"></div>
           <div class="wave-bar"></div>
           <div class="wave-bar"></div>
+        </div>
+      </section>
+
+      <!-- NOTICIAS PROPIAS / EDITORIAL ESPORA (MÁXIMA PRIORIDAD) -->
+      <section id="seccion-noticias-propias" class="noticias-destacadas">
+        <div class="seccion-destacadas-header">
+          <h2 class="seccion-destacadas-titulo">⭐ Editorial Espora — Lo Último</h2>
+          <span class="seccion-destacadas-sub">Investigaciones y despachos prioritarios de nuestra redacción</span>
+        </div>
+        <div class="articles-grid news-grid destacadas-grid" id="grilla-noticias-propias">
+          <!-- Inyectado dinámicamente desde app.js -->
         </div>
       </section>
 

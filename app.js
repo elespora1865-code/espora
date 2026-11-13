@@ -58,6 +58,9 @@ document.addEventListener("DOMContentLoaded", () => {
   initRefreshButton();
   initSearchBar();
 
+  // Cargar noticias propias destacadas (prioridad absoluta en portada)
+  cargarNoticiasPropias();
+
   const rutaActual = window.location.pathname;
   if (rutaActual.includes("patagonia.html")) {
     appState.activeCategory = "patagonia";
@@ -110,20 +113,34 @@ function obtenerImagenReal(itemXml) {
 }
 
 // ==========================================================================
-// 4. CONSUMO ROBUSTO DE FEEDS RSS (AllOrigins /raw)
+// 4. CONSUMO ROBUSTO DE FEEDS RSS (Backend Propio en Vercel + Fallback AllOrigins)
 // ==========================================================================
 async function fetchFeed(source) {
+  const MI_BACKEND = "https://espora-delta.vercel.app/api/apirss-proxy";
   let textoXml = null;
 
-  const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(source.url)}`;
-
+  // 1. Intentar primero con nuestro backend proxy en Vercel
   try {
-    const res = await fetch(proxyUrl);
+    const backendUrl = `${MI_BACKEND}?url=${encodeURIComponent(source.url)}`;
+    const res = await fetch(backendUrl);
     if (res.ok) {
       textoXml = await res.text();
     }
   } catch (e) {
-    // El fetch falló (red, CORS residual, o el proxy caído)
+    // Si falla Vercel, pasamos al fallback
+  }
+
+  // 2. Fallback público AllOrigins si el backend no respondió
+  if (!textoXml || !(textoXml.includes("<rss") || textoXml.includes("<feed") || textoXml.includes("<?xml"))) {
+    try {
+      const fallbackUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(source.url)}`;
+      const res = await fetch(fallbackUrl);
+      if (res.ok) {
+        textoXml = await res.text();
+      }
+    } catch (e) {
+      // El fallback falló
+    }
   }
 
   if (!textoXml || !(textoXml.includes("<rss") || textoXml.includes("<feed") || textoXml.includes("<?xml"))) {
@@ -207,14 +224,18 @@ async function loadAllFeeds(forceRefresh = false) {
     try {
       const parsed = JSON.parse(cachedData);
       if (Array.isArray(parsed) && parsed.length > 0) {
-        appState.allArticles = parsed;
+        // Refrescar las noticias del bot siempre (no se cachean en sessionStorage)
+        const noticiasBot = await cargarNoticiasBot();
+        const sinBot = parsed.filter(a => !a.isBot);
+        appState.allArticles = noticiasBot.length > 0 ? [...noticiasBot, ...sinBot] : parsed;
         appState.isLoading = false;
         if (refreshBtn) refreshBtn.classList.remove("spinning");
         if (liveIndicator) liveIndicator.textContent = "Cables en Vivo (Satelital)";
 
-        renderizarNoticiaPrincipal(parsed);
+        renderizarNoticiaPrincipal(appState.allArticles);
         renderArticles(appState.activeCategory);
         updateBreakingTicker(appState.allArticles);
+        botHijackCardClicks();
         return;
       }
     } catch (e) { }
@@ -264,9 +285,27 @@ async function loadAllFeeds(forceRefresh = false) {
       sessionStorage.setItem("el_espora_rss_time", Date.now().toString());
     } catch (e) { }
 
+    // Cargar y prepend noticias del bot (silencioso si el índice no existe aún)
+    const noticiasBot = await cargarNoticiasBot();
+    if (noticiasBot.length > 0) {
+      // Las noticias del bot van al inicio para garantizar visibilidad
+      collectedArticles = [...noticiasBot, ...collectedArticles];
+      console.info(`El Espora Bot: ${noticiasBot.length} noticia(s) cargadas desde el índice.`);
+    }
+
+    appState.allArticles = collectedArticles;
+    appState.lastUpdated = new Date();
+    appState.currentPage = 1;
+
+    try {
+      sessionStorage.setItem("el_espora_rss_cache", JSON.stringify(collectedArticles));
+      sessionStorage.setItem("el_espora_rss_time", Date.now().toString());
+    } catch (e) { }
+
     renderizarNoticiaPrincipal(collectedArticles);
     renderArticles(appState.activeCategory);
     updateBreakingTicker(collectedArticles);
+    botHijackCardClicks();
 
   } catch (globalErr) {
     console.error("Error global en recepción de feeds:", globalErr);
@@ -410,6 +449,20 @@ function renderArticles(filterCategory = "all") {
   const paginatedArticles = filtered.slice(startIndex, endIndex);
 
   paginatedArticles.forEach(article => {
+    // ── Tarjetas del bot: render especializado con slug y click directo ──
+    if (article.isBot && article.botSlug) {
+      const botCard = botCrearTarjeta({
+        slug:     article.botSlug,
+        titulo:   article.title,
+        fecha:    article.pubDate,
+        categoria: article.botCategoria || "GENERAL",
+        imagen:   article.image
+      });
+      gridEl.appendChild(botCard);
+      return;
+    }
+
+    // ── Tarjetas RSS estándar ──
     const card = document.createElement("article");
     card.className = "article-card";
     card.setAttribute("data-id", article.id);
@@ -747,3 +800,380 @@ function initDateDisplay() {
 }
 
 function initWeather() { }
+
+// ==========================================================================
+// 11. NOTICIAS BOT — INTEGRACIÓN CON EL ESPORA BOT (index_noticias.json)
+// ==========================================================================
+
+/**
+ * Mapa de categorías del bot a las claves y etiquetas del sistema editorial.
+ * Permite que las tarjetas bot adopten el mismo estilo de badges que el RSS.
+ */
+const BOT_CATEGORIA_MAP = {
+  "URGENTE":        { key: "argentina",   label: "⚡ Urgente",           color: "#dc2626" },
+  "LOCAL":          { key: "patagonia",   label: "🏔️ Patagonia",         color: "#1e3a8a" },
+  "SANTA CRUZ":     { key: "patagonia",   label: "🏔️ Santa Cruz",        color: "#1e3a8a" },
+  "POLITICA":       { key: "argentina",   label: "🗞️ Política Nacional",  color: "#1e293b" },
+  "ECONOMIA":       { key: "argentina",   label: "💰 Economía",          color: "#0284c7" },
+  "INTERNACIONAL":  { key: "geopolitica", label: "🌐 Internacional",      color: "#0f2c59" },
+  "DEFENSA":        { key: "geopolitica", label: "🛡️ Defensa",           color: "#334155" },
+  "ENERGIA":        { key: "argentina",   label: "⚡ Energía",           color: "#ea580c" },
+  "AGRO":           { key: "argentina",   label: "🌾 Agro",              color: "#16a34a" },
+};
+
+/**
+ * Convierte el texto plano del `articulo_web` generado por el bot en HTML limpio.
+ * Usa marked.js si está disponible (incluido vía CDN), con un fallback inline
+ * muy ligero que cubre los casos más comunes (títulos, párrafos, negritas).
+ */
+function botMarkdownToHtml(texto) {
+  if (!texto) return "";
+
+  // Preferir marked.js si fue cargado desde CDN
+  if (typeof marked !== "undefined") {
+    return marked.parse(texto, { breaks: true, gfm: true });
+  }
+
+  // Fallback: conversor mínimo inline
+  return texto
+    // Encabezados (hasta ###)
+    .replace(/^### (.+)$/gm, "<h3>$1</h3>")
+    .replace(/^## (.+)$/gm, "<h2>$1</h2>")
+    .replace(/^# (.+)$/gm, "<h1>$1</h1>")
+    // Negritas e itálicas
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.+?)\*/g,     "<em>$1</em>")
+    // Separadores
+    .replace(/^---+$/gm, "<hr>")
+    // Párrafos: cada bloque separado por línea vacía
+    .split(/\n{2,}/)
+    .map(bloque => bloque.trim())
+    .filter(bloque => bloque && !bloque.startsWith("<h") && !bloque.startsWith("<hr"))
+    .reduce((acc, bloque, _, arr) => {
+      // Si ya tiene etiqueta HTML propia, no envolver
+      if (/^<(h[1-6]|hr|ul|ol|li|blockquote)/.test(bloque)) return acc + bloque;
+      return acc + `<p>${bloque.replace(/\n/g, " ")}</p>`;
+    }, texto.split(/\n{2,}/).map(b => {
+      const t = b.trim();
+      if (/^#{1,3} /.test(t)) return t.replace(/^### (.+)$/, "<h3>$1</h3>").replace(/^## (.+)$/, "<h2>$1</h2>").replace(/^# (.+)$/, "<h1>$1</h1>");
+      if (/^---+$/.test(t)) return "<hr>";
+      return `<p>${t.replace(/\n/g, " ").replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>").replace(/\*(.+?)\*/g, "<em>$1</em>")}</p>`;
+    }).join(""));
+}
+
+/**
+ * Formatea una fecha ISO a texto en español tipo "6 de noviembre, 2026".
+ */
+function botFormatearFecha(isoString) {
+  if (!isoString) return "Fecha desconocida";
+  try {
+    const d = new Date(isoString);
+    return d.toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" });
+  } catch {
+    return isoString;
+  }
+}
+
+/**
+ * Genera el HTML de una tarjeta article-card para una noticia del bot.
+ * Respeta exactamente las mismas clases CSS que usan las tarjetas RSS:
+ * .article-card > .article-img-wrap + .article-content
+ */
+function botCrearTarjeta(item) {
+  const meta = BOT_CATEGORIA_MAP[item.categoria] || { key: "argentina", label: item.categoria || "Redacción", color: "#1e293b" };
+  const fechaFormateada = botFormatearFecha(item.fecha);
+  const imgSrc = item.imagen || "assets/hero-patagonia.jpg";
+  const fallback = "assets/hero-patagonia.jpg";
+
+  const card = document.createElement("article");
+  card.className = "article-card bot-noticia-card";
+  card.setAttribute("data-bot-slug", item.slug);
+  card.setAttribute("data-category-key", meta.key);
+
+  card.innerHTML = `
+    <div class="article-img-wrap">
+      <img
+        src="${escapeHtml(imgSrc)}"
+        alt="${escapeHtml(item.titulo)}"
+        class="article-img"
+        loading="lazy"
+        onerror="this.onerror=null; this.src='${fallback}';"
+      >
+      <span class="article-tag-badge" style="background: ${meta.color};">${meta.label}</span>
+      <span class="article-source-tag">🤖 El Espora Bot</span>
+    </div>
+    <div class="article-content">
+      <h3 class="article-card-title">${escapeHtml(item.titulo)}</h3>
+      <p class="article-card-excerpt" style="font-style: italic; font-size: 0.85rem; color: var(--text-muted);">
+        Análisis editorial exclusivo de redacción automatizada.
+      </p>
+      <div class="article-card-footer">
+        <span>📅 ${fechaFormateada}</span>
+        <span style="color: var(--gold-accent); font-weight: 700; font-size: 0.72rem;">✍️ Redacción Bot</span>
+      </div>
+    </div>
+  `;
+
+  card.addEventListener("click", () => botAbrirArticulo(item.slug));
+  return card;
+}
+
+/**
+ * Hace fetch del JSON detallado de una noticia y abre el modal de lectura
+ * con el contenido completo del `articulo_web` renderizado como HTML.
+ */
+async function botAbrirArticulo(slug) {
+  const modal = document.getElementById("reader-modal");
+  const bodyContainer = document.getElementById("reader-modal-body");
+  if (!modal || !bodyContainer) return;
+
+  // Mostrar estado de carga dentro del modal
+  bodyContainer.innerHTML = `
+    <div style="text-align: center; padding: 4rem 2rem; color: var(--text-muted);">
+      <div style="font-size: 2rem; margin-bottom: 1rem;">📡</div>
+      <p style="font-family: var(--font-sans); font-size: 0.9rem;">Recibiendo despacho del bot...</p>
+    </div>
+  `;
+  modal.classList.add("active");
+  document.body.style.overflow = "hidden";
+  const scrollEl = modal.querySelector(".reader-content-scroll");
+  if (scrollEl) scrollEl.scrollTop = 0;
+
+  try {
+    let res = await fetch(`noticias_propias/${slug}.json`, { cache: "no-cache" });
+    if (!res.ok) {
+      res = await fetch(`noticias_bot/${slug}.json`, { cache: "no-cache" });
+    }
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    const meta = BOT_CATEGORIA_MAP[data.categoria] || { label: data.categoria || "Redacción", color: "#1e293b" };
+    const fechaFormateada = botFormatearFecha(data.fecha);
+    const imgSrc = data.imagen || "assets/hero-patagonia.jpg";
+    const cuerpoHtml = botMarkdownToHtml(data.articulo_web || data.texto_completo || "");
+    const fuenteLink = data.link_original
+      ? `<a href="${escapeHtml(data.link_original)}" target="_blank" rel="noopener noreferrer"
+           style="color: var(--gold-accent);">
+           Leer fuente original ↗
+         </a>`
+      : "";
+
+    bodyContainer.innerHTML = `
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; flex-wrap: wrap; gap: 0.5rem;">
+        <span class="reader-category" style="background: ${meta.color}; color: #fff; padding: 0.3rem 0.85rem; border-radius: 50px; font-family: var(--font-sans); font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;">
+          ${meta.label}
+        </span>
+        <span class="edition-badge">🤖 El Espora Bot</span>
+      </div>
+
+      <h1 class="reader-headline">${escapeHtml(data.titulo)}</h1>
+
+      <div class="lead-meta" style="margin-bottom: 1.5rem;">
+        <div class="author-info">
+          <span>Fuente: <strong>${escapeHtml(data.fuente || "El Espora Bot")}</strong></span>
+        </div>
+        <span>📅 ${fechaFormateada}</span>
+        <span style="color: var(--gold-accent);">✍️ Redacción Automatizada</span>
+      </div>
+
+      <div class="reader-img-wrap" style="margin-bottom: 1.75rem;">
+        <img src="${escapeHtml(imgSrc)}" alt="${escapeHtml(data.titulo)}"
+             style="width: 100%; border-radius: var(--radius-md); object-fit: cover; max-height: 400px;"
+             onerror="this.src='assets/hero-patagonia.jpg'">
+        <div class="image-caption">
+          <span>Imagen asociada al despacho. Fuente: ${escapeHtml(data.fuente || "El Espora Bot")}.</span>
+          <span>Redacción El Espora</span>
+        </div>
+      </div>
+
+      <div class="reader-body-text" id="reader-dynamic-body"
+           style="font-size: ${appState.currentFontSize}rem; line-height: 1.8;">
+        ${cuerpoHtml}
+      </div>
+
+      ${fuenteLink ? `
+      <div style="margin-top: 2.5rem; padding: 1.25rem 1.5rem; background: var(--bg-card); border-radius: var(--radius-sm); border: var(--border-fine); text-align: center;">
+        <p style="font-family: var(--font-sans); font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.75rem;">
+          Este artículo fue elaborado por el sistema editorial automatizado de <strong>El Espora</strong> a partir de la nota original.
+        </p>
+        ${fuenteLink}
+      </div>` : ""}
+    `;
+
+    if (scrollEl) scrollEl.scrollTop = 0;
+
+  } catch (err) {
+    console.error("Error al cargar artículo bot:", err);
+    bodyContainer.innerHTML = `
+      <div style="text-align: center; padding: 3rem 1rem; color: var(--text-muted);">
+        <p style="font-family: var(--font-headline); font-size: 1.2rem; color: var(--gold-accent); margin-bottom: 0.5rem;">
+          Despacho no disponible
+        </p>
+        <p style="font-size: 0.88rem;">No se pudo recuperar el artículo del bot. Intente más tarde.</p>
+      </div>
+    `;
+  }
+}
+
+/**
+ * Carga el índice maestro del bot y prepara las tarjetas para inyectarlas
+ * en el grid principal. Se llama desde loadAllFeeds() antes de renderArticles().
+ * Las noticias bot se normalizan al mismo formato de objeto que los artículos RSS
+ * y se insertan al principio de appState.allArticles.
+ */
+async function cargarNoticiasBot() {
+  try {
+    let res = await fetch("noticias_propias/index_noticias.json", { cache: "no-cache" });
+    if (!res.ok) {
+      res = await fetch("noticias_bot/index_noticias.json", { cache: "no-cache" });
+    }
+    if (!res.ok) {
+      console.info("El Espora Bot: índice no disponible aún (HTTP", res.status, "). Se omite sin error.");
+      return [];
+    }
+    const lista = await res.json();
+    if (!Array.isArray(lista) || lista.length === 0) return [];
+
+    // Normalizar cada entrada del índice al formato de artículo del estado global
+    return lista.map(item => {
+      const meta = BOT_CATEGORIA_MAP[item.categoria] || { key: "argentina", label: item.categoria || "Redacción", color: "#1e293b" };
+      return {
+        // Identificador único para evitar colisiones con artículos RSS
+        id: `bot-${item.slug}`,
+        title: item.titulo,
+        link: `#bot-${item.slug}`,
+        sourceName: "El Espora Bot",
+        sourceIcon: "🤖",
+        categoryKey: meta.key,
+        categoryLabel: meta.label,
+        author: "Redacción Automatizada",
+        pubDate: item.fecha,
+        formattedDate: botFormatearFecha(item.fecha),
+        image: item.imagen || "assets/hero-patagonia.jpg",
+        fallbackImage: "assets/hero-patagonia.jpg",
+        excerpt: `Análisis editorial de El Espora Bot · ${meta.label}`,
+        content: "",
+        botSlug: item.slug,
+        botCategoria: item.categoria,   // ← categoría original para botCrearTarjeta
+        isBot: true
+      };
+    });
+
+  } catch (err) {
+    console.warn("El Espora Bot: no se pudo cargar el índice.", err);
+    return [];
+  }
+}
+
+/**
+ * ==========================================================================
+ * CARGA DE NOTICIAS PROPIAS (EDITORIAL ESPORA - MÁXIMA PRIORIDAD)
+ * Consulta 'noticias_propias/index_noticias.json' y renderiza de 3 a 5 tarjetas
+ * destacadas directamente en #seccion-noticias-propias al cargar la página.
+ * ==========================================================================
+ */
+async function cargarNoticiasPropias() {
+  const seccion = document.getElementById("seccion-noticias-propias");
+  if (!seccion) return;
+
+  try {
+    let res = await fetch("noticias_propias/index_noticias.json", { cache: "no-cache" });
+    if (!res.ok) {
+      // Fallback a noticias_bot por compatibilidad
+      res = await fetch("noticias_bot/index_noticias.json", { cache: "no-cache" });
+    }
+
+    if (!res.ok) {
+      console.info("Editorial Espora: índice de noticias propias aún no disponible (HTTP", res.status, ").");
+      return;
+    }
+
+    const lista = await res.json();
+    if (!Array.isArray(lista) || lista.length === 0) return;
+
+    // Seleccionar entre 3 y 5 más recientes para no saturar
+    const noticiasDestacadas = lista.slice(0, 4);
+
+    const tarjetasHtml = noticiasDestacadas.map(item => {
+      const meta = BOT_CATEGORIA_MAP[item.categoria] || { key: "argentina", label: item.categoria || "Editorial", color: "#1e293b" };
+      const fecha = botFormatearFecha(item.fecha);
+      const imgSrc = item.imagen || "assets/hero-patagonia.jpg";
+      const fallback = "assets/hero-patagonia.jpg";
+
+      return `
+        <article class="article-card bot-noticia-card tarjeta-propia-destacada" data-bot-slug="${escapeHtml(item.slug)}" style="cursor: pointer;">
+          <div class="article-img-wrap tarjeta-propia-img-wrap">
+            <img
+              src="${escapeHtml(imgSrc)}"
+              alt="${escapeHtml(item.titulo)}"
+              class="article-img"
+              loading="lazy"
+              onerror="this.onerror=null; this.src='${fallback}';"
+            >
+            <span class="article-tag-badge" style="background: ${meta.color};">${meta.label}</span>
+            <span class="article-source-tag" style="background: var(--gold-accent); color: #fff; font-weight: 700;">★ Editorial Espora</span>
+          </div>
+          <div class="article-content tarjeta-propia-content">
+            <h3 class="article-card-title tarjeta-propia-title">${escapeHtml(item.titulo)}</h3>
+            <p class="article-card-excerpt" style="font-style: italic; font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; margin: 0.6rem 0 1rem;">
+              Crónica y cobertura exclusiva desarrollada por la redacción central de El Espora.
+            </p>
+            <div class="article-card-footer" style="margin-top: auto;">
+              <span>📅 ${fecha}</span>
+              <span style="color: var(--gold-accent); font-weight: 700; font-size: 0.78rem;">✍️ Redacción Espora</span>
+            </div>
+          </div>
+        </article>
+      `;
+    }).join("");
+
+    const grillaInterna = document.getElementById("grilla-noticias-propias");
+    if (grillaInterna) {
+      grillaInterna.innerHTML = tarjetasHtml;
+    } else {
+      seccion.innerHTML = `
+        <div class="seccion-destacadas-header">
+          <h2 class="seccion-destacadas-titulo">⭐ Editorial Espora — Lo Último</h2>
+          <span class="seccion-destacadas-sub">Investigaciones y despachos prioritarios de nuestra redacción</span>
+        </div>
+        <div class="articles-grid news-grid destacadas-grid" id="grilla-noticias-propias">
+          ${tarjetasHtml}
+        </div>
+      `;
+    }
+
+    // Vincular evento de clic a las tarjetas para abrir el lector modal completo
+    seccion.querySelectorAll("[data-bot-slug]").forEach(card => {
+      card.addEventListener("click", () => {
+        const slug = card.getAttribute("data-bot-slug");
+        if (slug) botAbrirArticulo(slug);
+      });
+    });
+
+  } catch (err) {
+    console.warn("Editorial Espora: no se pudieron cargar las noticias propias:", err);
+  }
+}
+
+/**
+ * Intercepta los clics en tarjetas bot dentro del grid para abrir
+ * el modal de lectura correcto (fetch del JSON detallado), en vez del
+ * openReaderModalWithArticle genérico que mostraría contenido vacío.
+ * Se llama una sola vez después de cada render del grid.
+ */
+function botHijackCardClicks() {
+  const grid = document.getElementById("articles-grid");
+  if (!grid) return;
+
+  // Usamos delegación de eventos en el grid para no tener que re-enlazar
+  // en cada render (el listener sobrevive aunque el innerHTML cambie)
+  if (grid._botListenerAttached) return;
+  grid._botListenerAttached = true;
+
+  grid.addEventListener("click", (e) => {
+    const card = e.target.closest("[data-bot-slug]");
+    if (!card) return;
+    e.stopPropagation();
+    botAbrirArticulo(card.getAttribute("data-bot-slug"));
+  });
+}
